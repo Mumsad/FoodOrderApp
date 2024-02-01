@@ -1,20 +1,33 @@
 
 package com.example.foodorder
 
+
 import android.content.Intent
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.text.Editable
+import android.text.TextWatcher
+import android.util.Log
+import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.PhoneAuthCredential
-import com.google.firebase.auth.PhoneAuthProvider
 import com.example.foodorder.databinding.ActivityPhoneOtpBinding
+import com.google.firebase.FirebaseException
+import com.google.firebase.FirebaseTooManyRequestsException
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
+import com.google.firebase.auth.PhoneAuthCredential
+import com.google.firebase.auth.PhoneAuthOptions
+import com.google.firebase.auth.PhoneAuthProvider
+import java.util.concurrent.TimeUnit
 
 class PhoneOtpActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityPhoneOtpBinding
     private lateinit var auth: FirebaseAuth
-    private lateinit var verificationId: String
+    private lateinit var OTP: String
+    private lateinit var resendToken: PhoneAuthProvider.ForceResendingToken
     private lateinit var phoneNumber: String
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -22,40 +35,210 @@ class PhoneOtpActivity : AppCompatActivity() {
         binding = ActivityPhoneOtpBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        OTP = intent.getStringExtra("OTP").toString()
+        resendToken = intent.getParcelableExtra("resendToken")!!
+        phoneNumber = intent.getStringExtra("phoneNumber")!!
+
         init()
+        binding.otpProgressBar.visibility = View.INVISIBLE
+        addTextChangeListener()
+        resendOTPTvVisibility()
 
-        phoneNumber = intent.getStringExtra("phoneNumber") ?: ""
-        verificationId = intent.getStringExtra("verificationId") ?: ""
+        binding.resendTextView.setOnClickListener {
+            resendVerificationCode()
+            resendOTPTvVisibility()
+        }
 
-        binding.verifyotpbutton.setOnClickListener {
-            val otp = binding.otpenter.text.trim().toString()
-            if (otp.isNotEmpty()) {
-                val credential = PhoneAuthProvider.getCredential(verificationId, otp)
-                signInWithPhoneAuthCredential(credential)
+        binding.verifyOTPBtn.setOnClickListener {
+            val typedOTP = binding.inputOTP1.text.toString() +
+                    binding.inputOTP2.text.toString() +
+                    binding.otpEditText3.text.toString() +
+                    binding.otpEditText4.text.toString() +
+                    binding.otpEditText5.text.toString() +
+                    binding.otpEditText6.text.toString()
+
+            if (typedOTP.isNotEmpty()) {
+                if (typedOTP.length == 6) {
+                    val credential: PhoneAuthCredential = PhoneAuthProvider.getCredential(
+                        OTP, typedOTP
+                    )
+                    binding.otpProgressBar.visibility = View.VISIBLE
+                    signInWithPhoneAuthCredential(credential)
+                } else {
+                    showToast("Please Enter Correct OTP")
+                }
             } else {
-                Toast.makeText(this, "Please enter OTP", Toast.LENGTH_SHORT).show()
+                showToast("Please Enter OTP")
             }
         }
     }
 
-    private fun init() {
-        auth = FirebaseAuth.getInstance()
+    private fun resendOTPTvVisibility() {
+        binding.inputOTP1.setText("")
+        binding.inputOTP2.setText("")
+        binding.otpEditText3.setText("")
+        binding.otpEditText4.setText("")
+        binding.otpEditText5.setText("")
+        binding.otpEditText6.setText("")
+        binding.resendTextView.visibility = View.INVISIBLE
+        binding.resendTextView.isEnabled = false
+
+        Handler(Looper.myLooper()!!).postDelayed(Runnable {
+            binding.resendTextView.visibility = View.VISIBLE
+            binding.resendTextView.isEnabled = true
+        }, 2000)
     }
 
-    private fun sendToMainActivity() {
-        startActivity(Intent(this, MainActivity::class.java))
-        finish() // Close this activity after moving to MainActivity
+    private fun resendVerificationCode() {
+        val options = PhoneAuthOptions.newBuilder(auth)
+            .setPhoneNumber(phoneNumber)
+            .setTimeout(60L, TimeUnit.SECONDS)
+            .setActivity(this)
+            .setCallbacks(callbacks)
+            .setForceResendingToken(resendToken)
+            .build()
+        PhoneAuthProvider.verifyPhoneNumber(options)
+    }
+
+    private val callbacks = object : PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
+
+        override fun onVerificationCompleted(credential: PhoneAuthCredential) {
+            signInWithPhoneAuthCredential(credential)
+        }
+
+        override fun onVerificationFailed(e: FirebaseException) {
+            if (e is FirebaseAuthInvalidCredentialsException) {
+                Log.d("TAG", "onVerificationFailed: ${e.toString()}")
+            } else if (e is FirebaseTooManyRequestsException) {
+                Log.d("TAG", "onVerificationFailed: ${e.toString()}")
+            }
+            binding.otpProgressBar.visibility = View.VISIBLE
+        }
+
+        override fun onCodeSent(
+            verificationId: String,
+            token: PhoneAuthProvider.ForceResendingToken
+        ) {
+            OTP = verificationId
+            resendToken = token
+        }
     }
 
     private fun signInWithPhoneAuthCredential(credential: PhoneAuthCredential) {
         auth.signInWithCredential(credential)
             .addOnCompleteListener(this) { task ->
                 if (task.isSuccessful) {
-                    Toast.makeText(this, "Authenticate Successfully", Toast.LENGTH_SHORT).show()
-                    sendToMainActivity()
+                    showToast("Authenticate Successfully")
+                    sendToMain()
                 } else {
-                    Toast.makeText(this, "Invalid OTP", Toast.LENGTH_SHORT).show()
+                    Log.d("TAG", "signInWithPhoneAuthCredential: ${task.exception.toString()}")
+                    if (task.exception is FirebaseAuthInvalidCredentialsException) {
+                        // The verification code entered was invalid
+                        Toast.makeText(this, "Enter Valid OTP ", Toast.LENGTH_SHORT).show()
+                    }
                 }
+                binding.otpProgressBar.visibility = View.VISIBLE
             }
     }
+
+    private fun sendToMain() {
+        startActivity(Intent(this, MainActivity::class.java))
+    }
+
+    private fun addTextChangeListener() {
+        binding.inputOTP1.addTextChangedListener(EditTextWatcher(binding.inputOTP1))
+        binding.inputOTP2.addTextChangedListener(EditTextWatcher(binding.inputOTP2))
+        binding.otpEditText3.addTextChangedListener(EditTextWatcher(binding.otpEditText3))
+        binding.otpEditText4.addTextChangedListener(EditTextWatcher(binding.otpEditText4))
+        binding.otpEditText5.addTextChangedListener(EditTextWatcher(binding.otpEditText5))
+        binding.otpEditText6.addTextChangedListener(EditTextWatcher(binding.otpEditText6))
+    }
+
+    private fun init() {
+        auth = FirebaseAuth.getInstance()
+    }
+
+    inner class EditTextWatcher(private val view: View) : TextWatcher {
+        override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
+
+        }
+
+        override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
+
+        }
+
+        override fun afterTextChanged(p0: Editable?) {
+            val text = p0.toString()
+            when (view.id) {
+                R.id.inputOTP1 -> if (text.length == 1) binding.inputOTP2.requestFocus()
+                R.id.inputOTP2 -> if (text.length == 1) binding.otpEditText3.requestFocus() else if (text.isEmpty()) binding.inputOTP1.requestFocus()
+                R.id.otpEditText3 -> if (text.length == 1) binding.otpEditText4.requestFocus() else if (text.isEmpty()) binding.inputOTP2.requestFocus()
+                R.id.otpEditText4 -> if (text.length == 1) binding.otpEditText5.requestFocus() else if (text.isEmpty()) binding.otpEditText3.requestFocus()
+                R.id.otpEditText5 -> if (text.length == 1) binding.otpEditText6.requestFocus() else if (text.isEmpty()) binding.otpEditText4.requestFocus()
+                R.id.otpEditText6 -> if (text.isEmpty()) binding.otpEditText5.requestFocus()
+            }
+        }
+    }
+
+    private fun showToast(message: String) {
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+    }
 }
+
+//
+//package com.example.foodorder
+//
+//import android.os.Bundle
+//import androidx.appcompat.app.AppCompatActivity
+//import com.google.firebase.auth.FirebaseAuth
+//import com.google.firebase.auth.PhoneAuthCredential
+//import com.google.firebase.auth.PhoneAuthProvider
+//import com.example.foodorder.databinding.ActivityPhoneOtpBinding
+//
+//class PhoneOtpActivity : AppCompatActivity() {
+//
+//    private lateinit var binding: ActivityPhoneOtpBinding
+//    private lateinit var auth: FirebaseAuth
+//    private var verificationId: String? = null
+//
+//    override fun onCreate(savedInstanceState: Bundle?) {
+//        super.onCreate(savedInstanceState)
+//        binding = ActivityPhoneOtpBinding.inflate(layoutInflater)
+//        setContentView(binding.root)
+//
+//        auth = FirebaseAuth.getInstance()
+//
+//        // Retrieve verification ID from the intent
+//        verificationId = intent.getStringExtra("verificationId")
+//
+//        binding.verifyOTPBtn.setOnClickListener {
+//            // Implement OTP verification logic using the entered OTP
+//            val enteredOTP = binding.inputOTP1.text.toString() +
+//                    binding.inputOTP2.text.toString() +
+//                    binding.otpEditText3.text.toString() +
+//                    binding.otpEditText4.text.toString() +
+//                    binding.otpEditText5.text.toString() +
+//                    binding.otpEditText6.text.toString()
+//
+//            val credential = PhoneAuthProvider.getCredential(verificationId!!, enteredOTP)
+//            signInWithPhoneAuthCredential(credential)
+//        }
+//
+//        binding.resendTextView.setOnClickListener {
+//            // Implement OTP Resend logic if needed
+//        }
+//    }
+//
+//    private fun signInWithPhoneAuthCredential(credential: PhoneAuthCredential) {
+//        auth.signInWithCredential(credential)
+//            .addOnCompleteListener(this) { task ->
+//                if (task.isSuccessful) {
+//                    // Sign in success, update UI or navigate to the next activity
+//                    // For example: startActivity(Intent(this, MainActivity::class.java))
+//                } else {
+//                    // If sign-in fails, display an error message to the user
+//                    // You can also handle specific error cases here
+//                }
+//            }
+//    }
+//}

@@ -5,6 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:elevation="5dp"
+    android:background="@color/white"
     tools:context=".SignUpActivity">
 
 
@@ -168,7 +169,7 @@
         android:layout_width="157dp"
         android:layout_height="57dp"
         android:layout_marginTop="24dp"
-        android:background="@drawable/green_button"
+        android:background="@drawable/greenbuttongradent"
         android:fontFamily="@font/lato_regular"
         android:text="Create Account"
         android:textAllCaps="false"
