@@ -1,26 +1,26 @@
 package com.example.foodorder.Fragment
+
+
 import android.os.Bundle
 import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
-import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
-import androidx.appcompat.view.menu.MenuAdapter
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.denzcoskun.imageslider.constants.ScaleTypes
 import com.denzcoskun.imageslider.interfaces.ItemClickListener
 import com.denzcoskun.imageslider.models.SlideModel
 import com.example.foodorder.R
-import com.example.foodorder.adapter.PopularAdapter
+import com.example.foodorder.adapter.MenuAdapter
 import com.example.foodorder.databinding.FragmentHomeBinding
+import com.example.foodorder.models.MenuItem
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
-
 
 class HomeFragment : Fragment() {
 
@@ -44,6 +44,9 @@ class HomeFragment : Fragment() {
             bottomSheetDialog.show(parentFragmentManager, "Test")
         }
         retrieveAndDisplayPopularItems()
+
+
+
         return binding.root
     }
 
@@ -64,7 +67,7 @@ class HomeFragment : Fragment() {
                 }
                 Log.d("ITEMS", "onDataChange : Data Received")
                 // once data receive set to adapter
-//                randomPopularItems()
+                randomPopularItems()
             }
 
             override fun onCancelled(error: DatabaseError) {
@@ -73,28 +76,30 @@ class HomeFragment : Fragment() {
         })
     }
 
-//    private fun randomPopularItems() {
-//        // Create as shuffled list of menu items Auto
-//        val index = menuItems.indices.toList().shuffled()
-//        val numItemToShow = 6
-//        val subsetMenuItems = index.take(numItemToShow).map { menuItems[it] }
-//
-//        setPopularItemAdapter(subsetMenuItems)
-//    }
+    private fun randomPopularItems() {
+        // Create as shuffled list of menu items Auto
+        val index = menuItems.indices.toList().shuffled()
+        val numItemToShow = 6
+        val subsetMenuItems = index.take(numItemToShow).map { menuItems[it] }
 
-//    private fun setPopularItemAdapter(subsetMenuItems: List<MenuItem>) {
-//        val adapter = MenuAdapter(subsetMenuItems, requireContext())
-//        binding.popularRecyclerView.layoutManager = LinearLayoutManager(requireContext())
-//        binding.popularRecyclerView.adapter = adapter
-//    }
+        setPopularItemAdapter(subsetMenuItems)
+    }
+
+
+
+    private fun setPopularItemAdapter(subsetMenuItems: List<MenuItem>) {
+        val adapter = MenuAdapter(subsetMenuItems.toMutableList(), requireContext())
+        binding.popularRecyclerView.layoutManager = LinearLayoutManager(requireContext())
+        binding.popularRecyclerView.adapter = adapter
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
         val imageList = ArrayList<SlideModel>()
         imageList.add(SlideModel(R.drawable.banner1, scaleType = ScaleTypes.FIT))
-        imageList.add(SlideModel(R.drawable.banner2, scaleType = ScaleTypes.FIT))
-        imageList.add(SlideModel(R.drawable.banner3, scaleType = ScaleTypes.FIT))
+        imageList.add(SlideModel(R.drawable.banner1, scaleType = ScaleTypes.FIT))
+        imageList.add(SlideModel(R.drawable.banner1, scaleType = ScaleTypes.FIT))
 
         val imageSlide = binding.imageSlider
         imageSlide.setImageList(imageList)
@@ -106,13 +111,13 @@ class HomeFragment : Fragment() {
             }
 
             override fun onItemSelected(position: Int) {
-                val itemPosition = imageList[position]
+                //val itemPosition = imageList[position]
                 val itemMessage = "Selected Image $position"
                 Toast.makeText(requireContext(), itemMessage, Toast.LENGTH_SHORT).show()
             }
         })
 
-        val foodName = listOf("Burger", "Sandwich", "momo", "Herbal Pancake", "Mixing")
+        /* val foodName = listOf("Burger", "Sandwich", "momo", "Herbal Pancake", "Mixing")
 
          val price = listOf("$10", "$8", "$15", "$99", "$50")
 
@@ -125,7 +130,7 @@ class HomeFragment : Fragment() {
          )
          val adapter = PopularAdapter(foodName, price, popularFoodImages, requireContext())
          binding.popularRecyclerView.layoutManager = LinearLayoutManager(requireContext())
-         binding.popularRecyclerView.adapter = adapter
+         binding.popularRecyclerView.adapter = adapter*/
     }
 
     companion object {

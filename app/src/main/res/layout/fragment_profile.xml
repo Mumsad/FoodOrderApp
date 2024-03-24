@@ -11,6 +11,7 @@
     tools:context=".Fragment.ProfileFragment">
 
     <LinearLayout
+        android:id="@+id/linearLayout2"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
@@ -59,12 +60,13 @@
                 android:hint="@string/name"
                 android:inputType="text"
                 android:paddingStart="0dp"
-                android:paddingEnd="12dp" />
+                android:paddingEnd="12dp"
+                tools:ignore="TouchTargetSizeCheck" />
         </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:layout_marginStart="10dp"
             android:layout_marginTop="10dp"
             android:layout_marginEnd="10dp"
@@ -74,7 +76,7 @@
             android:orientation="horizontal">
 
             <TextView
-                android:layout_width="20dp"
+                android:layout_width="30dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
                 android:layout_weight="1"
@@ -94,7 +96,7 @@
                 android:background="@android:color/transparent"
                 android:ems="10"
                 android:fontFamily="@font/lato_regular"
-                android:hint="@string/address_Dummy"
+                android:hint="Address"
                 android:inputType="textMultiLine"
                 android:paddingStart="0dp"
                 android:paddingEnd="12dp" />
@@ -133,7 +135,8 @@
                 android:hint="@string/admin_email"
                 android:inputType="textEmailAddress"
                 android:paddingStart="0dp"
-                android:paddingEnd="12dp" />
+                android:paddingEnd="12dp"
+                tools:ignore="TouchTargetSizeCheck" />
         </LinearLayout>
 
         <LinearLayout
@@ -168,7 +171,8 @@
                 android:ems="10"
                 android:fontFamily="@font/lato_regular"
                 android:hint="@string/phone_number"
-                android:inputType="number" />
+                android:inputType="number"
+                tools:ignore="TouchTargetSizeCheck" />
         </LinearLayout>
 
 
@@ -180,8 +184,8 @@
         android:layout_width="match_parent"
         android:layout_height="57dp"
         android:layout_marginStart="8dp"
+        android:layout_marginTop="32dp"
         android:layout_marginEnd="8dp"
-        android:layout_marginBottom="32dp"
         android:background="@drawable/profile_edit_text"
         android:elevation="5dp"
         android:fontFamily="@font/yeonsung_regular"
@@ -189,7 +193,26 @@
         android:textAllCaps="false"
         android:textColor="@color/text_color"
         android:textSize="22sp"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/linearLayout2" />
+
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/logoutButton"
+        android:layout_width="match_parent"
+        android:layout_height="57dp"
+
+        android:background="@drawable/profile_edit_text"
+        android:elevation="5dp"
+        android:fontFamily="@font/yeonsung_regular"
+        android:text="Logout"
+        android:textAllCaps="false"
+        android:textColor="#FF1100"
+        android:textSize="22sp"
+        app:layout_constraintEnd_toEndOf="@+id/saveUserInformationButton"
+        app:layout_constraintStart_toStartOf="@+id/saveUserInformationButton"
+        app:layout_constraintTop_toBottomOf="@+id/saveUserInformationButton" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -2,6 +2,9 @@
     <string name="app_name">Food Order</string>
     <string name="default_web_client_id">642826888399-g0umor379sksabrgr4rau4r9be6negej.apps.googleusercontent.com</string>
 
+    <string name="waves_of_food">TastSwift</string>
+    <string name="deliver_favorite_food">Deliver Favorite Food</string>
+
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="choose_your_location">Choose Your Location</string>
@@ -26,7 +29,7 @@
     <string name="explore_your_favorite_food">Explore Your Favorite Food</string>
     <string name="enjoy_restaurant_quality_meals_n_at_home">Enjoy Restaurant Quality Meals \n at Home</string>
     <string name="next">Next</string>
-    <string name="design_by_n_muhsan_tech">Design By \n Muhsan-Tech</string>
+    <string name="design_by_n_muhsan_tech">Design By \n Shaikh</string>
     <string name="already_have_an_account">Already Have An Account?</string>
     <string name="name">Name </string>
     <string name="sign_up_here">Sign Up Here</string>
@@ -51,7 +54,7 @@
     <string name="address_Dummy">Android is a mobile operating system based on a modified version of the Linux kernel and other open-source software, designed primarily for touchscreen mobile devices such as smartphones and tablets.</string>
     <string name="admin_email">admin@gmail.com</string>
     <string name="phone">Phone</string>
-    <string name="phone_number">0097123456789</string>
+    <string name="phone_number">919876543275</string>
     <string name="save_information">Save Information</string>
     <string name="go_home">Go Home</string>
     <string name="congrats_nyour_order_placed">Congrats \nYour Order Placed</string>
@@ -62,4 +65,6 @@
     <string name="home">Home</string>
     <string name="history">History</string>
     <string name="profile">Profile</string>
+
+
 </resources>

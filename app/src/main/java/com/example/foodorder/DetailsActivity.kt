@@ -6,9 +6,11 @@ import android.net.Uri
 import android.widget.Toast
 import com.bumptech.glide.Glide
 import com.example.foodorder.databinding.ActivityDetailsBinding
+import com.example.foodorder.models.CartItems
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.values
+
 
 
 class DetailsActivity : AppCompatActivity() {
@@ -60,13 +62,14 @@ class DetailsActivity : AppCompatActivity() {
         val userId = auth.currentUser?.uid?:""
 
         // Create  a CartItems objects
-//        val cartItem = CartItems(foodName.toString(),foodPrice.toString(), foodDescription.toString(),foodImage.toString(), 1 )
+        val cartItem = CartItems(foodName.toString(),foodPrice.toString(), foodDescription.toString(),foodImage.toString(), 1 )
 
         // Save Data to cart item to firebase database
-//        database.child("user").child(userId).child("cartItems").push().setValue(cartItem)
-//            .addOnSuccessListener {
-//                Toast.makeText(this,"Items Added into cart successfully 🥰",Toast.LENGTH_SHORT).show()
-//            }.addOnFailureListener {
-//                Toast.makeText(this,"Item Not Added 😒",Toast.LENGTH_SHORT).show()
+        database.child("user").child(userId).child("cartItems").push().setValue(cartItem)
+            .addOnSuccessListener {
+                Toast.makeText(this,"Items Added into cart successfully 🥰",Toast.LENGTH_SHORT).show()
+            }.addOnFailureListener {
+                Toast.makeText(this,"Item Not Added 😒",Toast.LENGTH_SHORT).show()
             }
     }
+}

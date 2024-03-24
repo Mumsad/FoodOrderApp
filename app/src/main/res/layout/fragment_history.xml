@@ -84,10 +84,10 @@ tools:context=".Fragment.HistoryFragment">
 
             <androidx.cardview.widget.CardView
                 android:id="@+id/historyOrderedStatus"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
+                android:layout_width="35dp"
+                android:layout_height="35dp"
                 android:layout_marginEnd="32dp"
-                android:backgroundTint="#6B6C6B"
+                android:backgroundTint="#CCCFCC"
                 app:cardCornerRadius="22dp"
                 app:layout_constraintBottom_toTopOf="@+id/historyFragmentReceivedButton"
                 app:layout_constraintEnd_toEndOf="parent"
@@ -95,14 +95,14 @@ tools:context=".Fragment.HistoryFragment">
 
             <androidx.appcompat.widget.AppCompatButton
                 android:id="@+id/historyFragmentReceivedButton"
-                android:layout_width="60dp"
-                android:visibility="invisible"
-                android:layout_height="20dp"
+                android:layout_width="65dp"
+                android:layout_height="30dp"
                 android:background="@drawable/addtocartshape"
                 android:fontFamily="@font/yeonsung_regular"
                 android:text="@string/received"
                 android:textAllCaps="false"
                 android:textColor="@color/white"
+                android:visibility="invisible"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="@+id/historyOrderedStatus"
                 app:layout_constraintHorizontal_bias="0.5"

@@ -6,6 +6,7 @@
     android:layout_height="match_parent"
     android:background="@color/white"
     tools:context=".DetailsActivity">
+
     <ImageButton
         android:id="@+id/detailGoToBackImageButton"
         android:layout_width="48dp"

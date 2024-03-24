@@ -4,9 +4,15 @@ import android.content.Context
 import android.content.Intent
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
 import com.example.foodorder.DetailsActivity
 import com.example.foodorder.databinding.PopularItemsBinding
+import com.example.foodorder.models.CartItems
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.FirebaseDatabase
+
+
 class PopularAdapter(
     private val items: List<String>,
     private val price: List<String>,
@@ -32,7 +38,7 @@ class PopularAdapter(
         val price = price[position]
         holder.bind(item, price, images)
         holder.itemView.setOnClickListener {
-//             set On Click Listener to Open Details
+            // set On Click Listener to Open Details
             val intent = Intent(requireContext, DetailsActivity::class.java)
             intent.putExtra("MenuItemName", item)
             intent.putExtra("MenuItemImage", images)

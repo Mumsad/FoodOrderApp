@@ -1,33 +1,41 @@
 package com.example.foodorder.Fragment
 
+
+import android.content.Intent
+import android.graphics.Color
+import android.net.Uri
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import com.example.foodorder.R
-
-// TODO: Rename parameter arguments, choose names that match
-// the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-private const val ARG_PARAM1 = "param1"
-private const val ARG_PARAM2 = "param2"
-
-/**
- * A simple [Fragment] subclass.
- * Use the [HistoryFragment.newInstance] factory method to
- * create an instance of this fragment.
- */
+import android.widget.Toast
+import androidx.fragment.app.Fragment
+import androidx.recyclerview.widget.LinearLayoutManager
+import com.bumptech.glide.Glide
+import com.example.foodorder.RecentOrderActivity
+import com.example.foodorder.adapter.BuyAgainAdapter
+import com.example.foodorder.databinding.FragmentHistoryBinding
+import com.example.foodorder.models.OrderDetails
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.DatabaseReference
+import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.Transaction
+import com.google.firebase.database.ValueEventListener
 class HistoryFragment : Fragment() {
-    // TODO: Rename and change types of parameters
-    private var param1: String? = null
-    private var param2: String? = null
+
+    private lateinit var binding: FragmentHistoryBinding
+    private lateinit var buyAgainAdapter: BuyAgainAdapter
+    private lateinit var database : FirebaseDatabase
+    private lateinit var auth: FirebaseAuth
+    private lateinit var userId:String
+    private var listOfOrderItem:ArrayList<OrderDetails> = arrayListOf()
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        arguments?.let {
-            param1 = it.getString(ARG_PARAM1)
-            param2 = it.getString(ARG_PARAM2)
-        }
+
     }
 
     override fun onCreateView(
@@ -35,26 +43,199 @@ class HistoryFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_history, container, false)
+        binding = FragmentHistoryBinding.inflate(inflater, container, false)
+
+        // Initialize Firebase
+        auth = FirebaseAuth.getInstance()
+        database = FirebaseDatabase.getInstance()
+
+        // Retrieve and  display the user order History
+        retrieveBuyHistory()
+
+        // recent buy Button click
+        binding.recentBuyItem.setOnClickListener {
+            seeItemsRecentBuy()
+        }
+//        setupRecyclerView()
+
+        binding.historyFragmentReceivedButton.setOnClickListener {
+            Toast.makeText(requireContext(),"Order Received Successful ", Toast.LENGTH_SHORT).show()
+            updateOrderStatus()
+
+        }
+
+
+
+
+        return binding.root
     }
 
-    companion object {
-        /**
-         * Use this factory method to create a new instance of
-         * this fragment using the provided parameters.
-         *
-         * @param param1 Parameter 1.
-         * @param param2 Parameter 2.
-         * @return A new instance of fragment HistoryFragment.
-         */
-        // TODO: Rename and change types and number of parameters
-        @JvmStatic
-        fun newInstance(param1: String, param2: String) =
-            HistoryFragment().apply {
-                arguments = Bundle().apply {
-                    putString(ARG_PARAM1, param1)
-                    putString(ARG_PARAM2, param2)
+
+
+    private fun updateOrderStatus() {
+
+//        val itemPushKey = listOfOrderItem.firstOrNull()?.itemPushKey
+//        if (itemPushKey != null) {
+//            val completeOrderReference = database.reference.child("CompletedOrder").child(itemPushKey)
+//            completeOrderReference.child("paymentReceived").setValue(true)
+//        } else {
+//            // Handle the case when there are no orders in the list
+//
+//        }
+        val itemPushKey = listOfOrderItem[0].itemPushKey
+        val completeOrderReference = database.reference.child("CompletedOrder").child(itemPushKey!!)
+        completeOrderReference.child("paymentReceived").setValue(true)
+    }
+
+
+
+
+
+
+
+
+
+    // Funcation to see items recent buy
+    private fun seeItemsRecentBuy() {
+        listOfOrderItem.firstOrNull()?.let { recentBuy->
+            val intent = Intent(requireContext(), RecentOrderActivity::class.java)
+            intent.putExtra("RecentBuyOrderItem",listOfOrderItem)
+            startActivity(intent)
+        }
+    }
+
+    // Function to see items  buy history
+    private fun retrieveBuyHistory() {
+        binding.recentBuyItem.visibility = View.INVISIBLE
+        userId = auth.currentUser?.uid?:""
+
+        val buyItemReference :DatabaseReference = database.reference.child("user").child(userId).child("BuyHistory")
+        val shortingQuery = buyItemReference.orderByChild("currentTime")
+
+        shortingQuery.addListenerForSingleValueEvent(object :ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                for (buySnapshot in snapshot.children){
+                    val buyHistoryItem = buySnapshot.getValue(OrderDetails::class.java)
+                    buyHistoryItem?.let {
+                        listOfOrderItem.add(it)
+                    }
+                }
+
+                //
+                listOfOrderItem.reverse()
+                if (listOfOrderItem.isNotEmpty()){
+                    // DIsplay the most recent order details
+                    setDataInRecentBuyItem()
+                    // setup the recyclerView  ithe previuse order details
+                    setPreviousBuyItemsRecyclerView()
                 }
             }
+
+            override fun onCancelled(error: DatabaseError) {
+                TODO("Not yet implemented")
+            }
+        })
     }
+
+    // Function to Display the most recent order details
+    private fun setDataInRecentBuyItem() {
+        binding.recentBuyItem.visibility = View.VISIBLE
+        val recentOrderItem = listOfOrderItem.firstOrNull()
+        recentOrderItem?.let {
+            with(binding){
+                historyOrderedFoodName.text = it.foodNames?.firstOrNull()?:""
+                historyOrderedFoodPrice.text = it.foodPrices?.firstOrNull()?:""
+                val image = it.foodImage?.firstOrNull()?:""
+                val uri  = Uri.parse(image)
+                Glide.with(requireContext()).load(uri).into(historyOrderedImageView)
+
+                val isOrderIsAccepted = listOfOrderItem[0].orderAccepted
+                if (isOrderIsAccepted){
+                    historyOrderedStatus.background.setTint(Color.GREEN)
+                    historyFragmentReceivedButton.visibility = View.VISIBLE
+                }
+                listOfOrderItem.reverse()
+                if (listOfOrderItem.isNotEmpty()){
+
+                }
+            }
+        }
+    }
+
+    // Function to setup the recyclerView  the previous order details
+    private fun setPreviousBuyItemsRecyclerView() {
+        val buyAgainFoodName = mutableListOf<String>()
+        val buyAgainFoodPrice = mutableListOf<String>()
+        val buyAgainFoodImage =  mutableListOf<String>()
+
+        for (i in 1 until listOfOrderItem.size){
+            listOfOrderItem[i].foodNames?.firstOrNull()?.let { buyAgainFoodName.add(it) }
+            listOfOrderItem[i].foodPrices?.firstOrNull()?.let { buyAgainFoodPrice.add(it) }
+            listOfOrderItem[i].foodImage?.firstOrNull()?.let { buyAgainFoodImage.add(it) }
+        }
+        val rv = binding.historyBuyAgainRecyclerView
+        rv.layoutManager = LinearLayoutManager(requireContext())
+        buyAgainAdapter = BuyAgainAdapter(buyAgainFoodName,buyAgainFoodPrice,buyAgainFoodImage,requireContext())
+        rv.adapter = buyAgainAdapter
+    }
+
+    /*  private fun setupRecyclerView() {
+          val historyFoodName =
+              listOf(
+                  "Burger",
+                  "Sandwich",
+                  "momo",
+                  "Herbal Pancake",
+                  "Mixing",
+                  "Burger",
+                  "Burger",
+                  "Sandwich",
+                  "momo",
+                  "Herbal Pancake",
+                  "Mixing",
+                  "Burger"
+              )
+
+          val historySellerName =
+              listOf(
+                  "Waroenk Kite",
+                  "Waroenk Kite",
+                  "Waroenk Kite",
+                  "Waroenk Kite",
+                  "Waroenk Kite",
+                  "Waroenk Kite",
+                  "Waroenk Kite",
+                  "Waroenk Kite",
+                  "Waroenk Kite",
+                  "Waroenk Kite",
+                  "Waroenk Kite",
+                  "Waroenk Kite"
+              )
+          val historyPrice =
+              listOf("$10", "$8", "$15", "$99", "$50", "$12", "$10", "$8", "$15", "$99", "$50", "$12")
+
+          val historyImages = listOf(
+              R.drawable.menu1,
+              R.drawable.menu2,
+              R.drawable.menu3,
+              R.drawable.menu4,
+              R.drawable.menu6,
+              R.drawable.menu2,
+              R.drawable.menu1,
+              R.drawable.menu2,
+              R.drawable.menu3,
+              R.drawable.menu4,
+              R.drawable.menu6,
+              R.drawable.menu2
+          )
+
+          val adapter = BuyAgainAdapter(ArrayList(historyFoodName),ArrayList(historySellerName),ArrayList(historyPrice),ArrayList(historyImages))
+          binding.historyBuyAgainRecyclerView.layoutManager = LinearLayoutManager(requireContext())
+          binding.historyBuyAgainRecyclerView.adapter = adapter
+
+      }
+
+      companion object {
+
+      }*/
 }
